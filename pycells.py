@@ -238,9 +238,9 @@ def run(window, width, height):
             if event.type == pygame.KEYDOWN and event.key == pygame.K_s:
                 logo.body.apply_impulse_at_local_point((0, 15000), (0, 0))                 
             if event.type == pygame.KEYDOWN and event.key == pygame.K_d:
-                logo.body.apply_impulse_at_local_point((10000, 0), (0, 0))
+                logo.body.apply_impulse_at_local_point((15000, 0), (0, 0))
             if event.type == pygame.KEYDOWN and event.key == pygame.K_a:
-                logo.body.apply_impulse_at_local_point((-10000, 0), (0, 0))
+                logo.body.apply_impulse_at_local_point((-15000, 0), (0, 0))
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 logo.body.apply_impulse_at_local_point((0, 100000), (0, 0))
                 for i in range(100):
