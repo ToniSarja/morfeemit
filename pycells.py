@@ -7,11 +7,15 @@ import random
 import pymunk.pygame_util
 import sys
 from derivation_on_collision import *
+import pymunk.autogeometry
+
+
+
 # Main game loop
 running = True
 clock = pygame.time.Clock()
 
-# Set the window size
+# Set the window sizea
 WIDTH, HEIGHT = 1000, 800
 window_size = (WIDTH, HEIGHT)
 screen = pygame.display.set_mode(window_size)
@@ -33,6 +37,67 @@ font = pygame.font.Font(None, 24)
 
 # List to store Prefix objects
 logos = []
+
+draw_options = pymunk.pygame_util.DrawOptions(screen)
+
+logo_img = pygame.image.load(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "pycells/pycells_graphics.png")
+)
+
+your_image_width = logo_img.get_width()
+your_image_height = logo_img.get_height()
+
+logo_bb = pymunk.BB(0, 0, your_image_width, your_image_height)
+
+
+def sample_func(point):
+    try:
+        p = pymunk.pygame_util.to_pygame(point, logo_img)
+        color = logo_img.get_at(p)
+
+        return color.a
+        # return color.hsla[2]
+    except:
+        return 0
+
+
+logo_img.lock()
+line_set = pymunk.autogeometry.march_soft(
+    logo_bb, logo_img.get_width(), logo_img.get_height(), 99, sample_func
+)
+logo_img.unlock()
+
+r = 10
+
+letter_group = 0
+for line in line_set:
+    line = pymunk.autogeometry.simplify_curves(line, 0.7)
+
+    max_x = 0
+    min_x = 1000
+    max_y = 0
+    min_y = 1000
+    for l in line:
+        max_x = max(max_x, l.x)
+        min_x = min(min_x, l.x)
+        max_y = max(max_y, l.y)
+        min_y = min(min_y, l.y)
+    w, h = max_x - min_x, max_y - min_y
+
+    # we skip the line which has less than 35 height, since its the "hole" in
+    # the p in pymunk, and we dont need it.
+    center = Vec2d(min_x + w / 2.0, min_y + h / 2.0)
+    t = pymunk.Transform(a=1.0, d=1.0, tx=-center.x, ty=-center.y)
+
+    static_body = pymunk.Body(body_type=pymunk.Body.STATIC)  # Create a static body
+    space.add(static_body)
+
+    if True:
+        for i in range(len(line) - 1):
+            shape = pymunk.Segment(static_body, line[i], line[i + 1], 1)
+            shape.friction = 0.5
+            shape.color = (255, 255, 255, 255)
+            space.add(shape)
 
 
 class Morpheme:
@@ -98,21 +163,6 @@ class ParticlePrinciple:
 
 particle1 = ParticlePrinciple()
 
-def create_boundaries(space, width, height):
-	rects = [
-		[(width/2, height - 10), (width, 20)],
-		[(width/2, 10), (width, 20)],
-		[(10, height/2), (20, height)],
-		[(width - 10, height/2), (20, height)]
-	]
-
-	for pos, size in rects:
-		body = pymunk.Body(body_type=pymunk.Body.STATIC)
-		body.position = pos
-		shape = pymunk.Poly.create_box(body, size)
-		shape.collision_type = 2
-		shape.friction = 0.5
-		space.add(body, shape)
 
 derivations = []
 
@@ -127,7 +177,7 @@ def collision_handler(arbiter, space, data):
 current_prefix_index = 0
 mouse_position = pygame.mouse.get_pos()
 prefixes = {
-     "za":{"image_path":"morfeemit/prefix/za.png","collision_type":1}
+     "za":{"image_path":"pycells/python-logo-only.png","collision_type":1}
             } 
 
 current_key_index = 0
@@ -149,16 +199,16 @@ def create_missile(space, position):
 
 def update_missile(missile, target):
     direction = target.get_position() - missile.position
-    missile.velocity = 200 * direction.normalized()
+    missile.velocity = 2000 * direction.normalized()
 
 current_key = 'No prefix selected'
+
 
 def run(window, width, height):
     current_key = 'No prefix selected'
     running = True
     launch_missile = False
     mouse_position = pygame.mouse.get_pos()
-    create_boundaries(space, width, height)
     current_key_index = 0
     keys = list(prefixes.keys())
     missile = None
@@ -166,24 +216,18 @@ def run(window, width, height):
 
     now = pygame.time.get_ticks()
     pygame.key.set_repeat(0, 0) 
-
+    
     while running:
         launch_missile = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if event.type == pygame.MOUSEWHEEL:
-                current_key_index = (current_key_index + 1) % len(keys)
-                current_key = keys[current_key_index]
-                current_value = prefixes[current_key]
-                print(current_value)
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 try:
                     mouse_position = pygame.mouse.get_pos()
                     # Get the image path based on the current_prefix_index
-                    para = current_value
                     # Create a Morpheme object and add it to the logos list
-                    logo = Morpheme(space, 40, mouse_position, 30, 30, 30, **para)
+                    logo = Morpheme(space, 40, mouse_position, 30, 30, 30, "pycells/python-logo-only.png", 1)
                     logos.append(logo)
                 except:
                     pass
@@ -216,15 +260,16 @@ def run(window, width, height):
 
         # Update PyMunk space
         space.step(1 / 60.0)
- 
+        
         # Clear the screen
         screen.fill(('white'))
+        screen.blit(logo_img, (0, 0))
         if missile:
             # Update missile's position based on the target
             update_missile(missile, logo)
         if missile:
             pygame.draw.circle(screen, (255, 0, 0), missile.position.int_tuple, 10)
-
+        
         particle1.emit()
         # Draw all Prefix objects
         for logo_shape in logos:
@@ -236,7 +281,6 @@ def run(window, width, height):
         if missile:
             pygame.draw.circle(screen, (255, 0, 0), missile.position.int_tuple, 10)            
 
-        
             
 
         # Update the display
