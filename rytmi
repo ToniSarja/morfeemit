@@ -14,7 +14,7 @@ space = pymunk.Space()
 space.gravity = 0.0, -9.81*100
 balls = []
 ball_entities = []
-
+controls = ['W', 'A', 'S', 'D']
 quad = load_model('quad', use_deepcopy=True)
 
 pygame.mixer.init()
@@ -25,6 +25,7 @@ def convert_pos(x, y):
     return x * window.size.x, y * window.size.y
 def pymunk_pos_to_ursina(x, y):
     return x / window.size.x, y / window.size.y
+
 
 def create_projectile(position):
     body = pymunk.Body(30, 100)
@@ -44,60 +45,9 @@ def create_projectile(position):
         )
     )
 
-def create_first_ball(beat_time):
+def create_ball(position,beat_time):
     body = pymunk.Body(10, 100)
-    body.position = (250, 450)
-    shape = pymunk.Circle(body, 10, (0, 0))
-    shape.friction = 0.5
-    shape.collision_type = 2  # Set the collision type for Pymunk balls
-    space.add(body, shape)
-    balls.append(shape)
-    ball_entities.append(Entity(
-            model=Circle(radius=shape.radius/500, resolution=10),
-            color=color.rgb(randint(0, 255), randint(0, 255), randint(0, 255)),
-            position=body.position,
-            parent=camera.ui,
-            collider='box'  # Add a collider to the ball entity for collision detection
-        )
-    )
-
-def create_second_ball(beat_time):
-    body = pymunk.Body(10, 100)
-    body.position = (100,450)
-    shape = pymunk.Circle(body, 10, (0, 0))
-    shape.friction = 0.5
-    shape.collision_type = 2  # Set the collision type for Pymunk balls
-    space.add(body, shape)
-    balls.append(shape)
-    ball_entities.append(Entity(
-            model=Circle(radius=shape.radius/500, resolution=10),
-            color=color.rgb(randint(0, 255), randint(0, 255), randint(0, 255)),
-            position=body.position,
-            parent=camera.ui,
-            collider='box'  # Add a collider to the ball entity for collision detection
-        )
-    )
-
-def create_third_ball(beat_time):
-    body = pymunk.Body(10, 100)
-    body.position = (-100,450)
-    shape = pymunk.Circle(body, 10, (0, 0))
-    shape.friction = 0.5
-    shape.collision_type = 2  # Set the collision type for Pymunk balls
-    space.add(body, shape)
-    balls.append(shape)
-    ball_entities.append(Entity(
-            model=Circle(radius=shape.radius/500, resolution=10),
-            color=color.rgb(randint(0, 255), randint(0, 255), randint(0, 255)),
-            position=body.position,
-            parent=camera.ui,
-            collider='box'  # Add a collider to the ball entity for collision detection
-        )
-    )
-
-def create_fourth_ball(beat_time):
-    body = pymunk.Body(10, 100)
-    body.position = (-250,450)
+    body.position = position
     shape = pymunk.Circle(body, 10, (0, 0))
     shape.friction = 0.5
     shape.collision_type = 2  # Set the collision type for Pymunk balls
@@ -128,6 +78,7 @@ first_of_four = [4.156371882086168, 6.408707482993197, 8.753922902494331, 11.006
 second_of_four = [4.73687074829932, 6.989206349206349, 9.357641723356009, 11.54031746031746, 13.79265306122449, 16.068208616780044, 18.3437641723356, 20.619319727891156, 22.871655328798187, 25.054331065759637, 27.237006802721087, 29.373242630385487, 31.43981859410431, 33.645714285714284, 35.80517006802721, 37.89496598639456, 40.03120181405896, 42.120997732426304]
 third_of_four = [5.294149659863946, 7.569705215419501, 9.914920634920636, 12.07437641723356, 14.373151927437641, 16.62548752834467, 18.877823129251702,21.176598639455783, 23.42893424036281, 25.588390022675735, 27.77106575963719, 29.88408163265306, 32.02031746031746, 34.202993197278914, 36.31600907029478, 38.45224489795918, 40.56526077097506, 42.67827664399093]
 four_of_four = [5.874648526077097, 8.17342403628118, 10.47219954648526, 12.60843537414966, 14.953650793650795, 17.205986394557822, 19.458321995464853, 21.73387755102041, 23.962993197278912, 26.16888888888889, 28.328344671201815, 30.418140589569163, 32.57759637188209, 34.73705215419501, 36.85006802721088, 38.963083900226756, 41.07609977324263, 43.165895691609975]
+
 
 W_key = Text(text='W', scale=2, y=-0, origin=(0, 0), background=False)
 W_key.x = -0.16
@@ -167,23 +118,30 @@ def change_D_color(beat_time):
 def change_D_white(beat_time):
     D_key.color = color.rgb(255, 255, 255)
 
+firs_pos =  (250, 450)
+second_pos = (100,450)
+third_pos = (-100,450)
+fourth_pos = (-250,450)
 
 for beat_time in first_of_four:
     invoke(change_W_white, beat_time=beat_time, delay=beat_time)
     invoke(change_D_color, beat_time=beat_time, delay=beat_time)
-    invoke(create_first_ball, beat_time=beat_time, delay=beat_time)
+    invoke(create_ball,position=firs_pos, beat_time=beat_time, delay=beat_time)
 for beat_time in second_of_four:
     invoke(change_S_color, beat_time=beat_time, delay=beat_time)
     invoke(change_D_white, beat_time=beat_time, delay=beat_time)
-    invoke(create_second_ball, beat_time=beat_time, delay=beat_time)
+    invoke(create_ball, position=second_pos, beat_time=beat_time, delay=beat_time)
 for beat_time in third_of_four:
     invoke(change_S_white, beat_time=beat_time, delay=beat_time)
     invoke(change_A_color, beat_time=beat_time, delay=beat_time)
-    invoke(create_third_ball, beat_time=beat_time, delay=beat_time)
+    invoke(create_ball, position=third_pos, beat_time=beat_time, delay=beat_time)
 for beat_time in four_of_four:
     invoke(change_A_white, beat_time=beat_time, delay=beat_time)
     invoke(change_W_color, beat_time=beat_time, delay=beat_time)
-    invoke(create_fourth_ball, beat_time=beat_time, delay=beat_time)
+    invoke(create_ball,position=fourth_pos, beat_time=beat_time, delay=beat_time)
+
+
+
 def input(key):
 
     if key == 'w':
@@ -196,8 +154,10 @@ def input(key):
         create_projectile(position=(-250, -450))
 
 
-def update():
 
+
+
+def update():
 
     for i, ball in enumerate(balls):
         ball_position = pymunk_pos_to_ursina(ball.body.position.x, ball.body.position.y)
