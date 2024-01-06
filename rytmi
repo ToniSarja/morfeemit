@@ -129,15 +129,61 @@ second_of_four = [4.73687074829932, 6.989206349206349, 9.357641723356009, 11.540
 third_of_four = [5.294149659863946, 7.569705215419501, 9.914920634920636, 12.07437641723356, 14.373151927437641, 16.62548752834467, 18.877823129251702,21.176598639455783, 23.42893424036281, 25.588390022675735, 27.77106575963719, 29.88408163265306, 32.02031746031746, 34.202993197278914, 36.31600907029478, 38.45224489795918, 40.56526077097506, 42.67827664399093]
 four_of_four = [5.874648526077097, 8.17342403628118, 10.47219954648526, 12.60843537414966, 14.953650793650795, 17.205986394557822, 19.458321995464853, 21.73387755102041, 23.962993197278912, 26.16888888888889, 28.328344671201815, 30.418140589569163, 32.57759637188209, 34.73705215419501, 36.85006802721088, 38.963083900226756, 41.07609977324263, 43.165895691609975]
 
+W_key = Text(text='W', scale=2, y=-0, origin=(0, 0), background=False)
+W_key.x = -0.16
+
+A_key = Text(text='A', scale=2, y=-0, origin=(0, 0), background=False)
+A_key.x = -0.06
+
+S_key = Text(text='S', scale=2, y=-0, origin=(0, 0), background=False)
+S_key.x = 0.06
+
+D_key = Text(text='D', scale=2, y=-0, origin=(0, 0), background=False)
+D_key.x = 0.16
+
+
+
+def change_W_color(beat_time):
+    W_key.color = color.random_color()
+
+def change_W_white(beat_time):
+    W_key.color = color.rgb(255, 255, 255)
+	
+def change_A_color(beat_time):
+    A_key.color = color.random_color()
+
+def change_A_white(beat_time):
+    A_key.color = color.rgb(255, 255, 255)
+	
+def change_S_color(beat_time):
+    S_key.color = color.random_color()
+
+def change_S_white(beat_time):
+    S_key.color = color.rgb(255, 255, 255)
+
+def change_D_color(beat_time):
+    D_key.color = color.random_color()
+
+def change_D_white(beat_time):
+    D_key.color = color.rgb(255, 255, 255)
+
+
 for beat_time in first_of_four:
+    invoke(change_W_white, beat_time=beat_time, delay=beat_time)
+    invoke(change_D_color, beat_time=beat_time, delay=beat_time)
     invoke(create_first_ball, beat_time=beat_time, delay=beat_time)
 for beat_time in second_of_four:
+    invoke(change_S_color, beat_time=beat_time, delay=beat_time)
+    invoke(change_D_white, beat_time=beat_time, delay=beat_time)
     invoke(create_second_ball, beat_time=beat_time, delay=beat_time)
 for beat_time in third_of_four:
+    invoke(change_S_white, beat_time=beat_time, delay=beat_time)
+    invoke(change_A_color, beat_time=beat_time, delay=beat_time)
     invoke(create_third_ball, beat_time=beat_time, delay=beat_time)
 for beat_time in four_of_four:
+    invoke(change_A_white, beat_time=beat_time, delay=beat_time)
+    invoke(change_W_color, beat_time=beat_time, delay=beat_time)
     invoke(create_fourth_ball, beat_time=beat_time, delay=beat_time)
-
 def input(key):
 
     if key == 'w':
