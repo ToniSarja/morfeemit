@@ -14,8 +14,10 @@ space = pymunk.Space()
 space.gravity = 0.0, -9.81*100
 balls = []
 ball_entities = []
-controls = ['W', 'A', 'S', 'D']
-quad = load_model('quad', use_deepcopy=True)
+score = 0
+reaction_time = 0.05
+
+start_time = time.time()
 
 pygame.mixer.init()
 pygame.mixer.music.load('your_song.mp3')
@@ -27,12 +29,12 @@ def pymunk_pos_to_ursina(x, y):
     return x / window.size.x, y / window.size.y
 
 
-def create_projectile(position):
-    body = pymunk.Body(30, 100)
+def create_projectile(position, collision_type):
+    body = pymunk.Body(20, 100)
     body.position = position
     shape = pymunk.Circle(body, 10, (0, 0))
     shape.friction = 0.5
-    shape.collision_type = 2  # Set the collision type for Pymunk balls
+    shape.collision_type = collision_type  # Set the collision type for Pymunk balls
     space.add(body, shape)
     balls.append(shape)
     body.apply_impulse_at_local_point((0, 25000), (0, 0))
@@ -40,25 +42,23 @@ def create_projectile(position):
             model=Circle(radius=shape.radius/500, resolution=10),
             color=color.rgb(randint(0, 255), randint(0, 255), randint(0, 255)),
             position=body.position,
-            parent=camera.ui,
-            collider='box'  # Add a collider to the ball entity for collision detection
+            parent=camera.ui
         )
     )
 
-def create_ball(position,beat_time):
+def create_ball(position, collision_type,beat_time):
     body = pymunk.Body(10, 100)
     body.position = position
     shape = pymunk.Circle(body, 10, (0, 0))
     shape.friction = 0.5
-    shape.collision_type = 2  # Set the collision type for Pymunk balls
+    shape.collision_type = collision_type  # Set the collision type for Pymunk balls
     space.add(body, shape)
     balls.append(shape)
     ball_entities.append(Entity(
             model=Circle(radius=shape.radius/500, resolution=10),
             color=color.rgb(randint(0, 255), randint(0, 255), randint(0, 255)),
             position=body.position,
-            parent=camera.ui,
-            collider='box'  # Add a collider to the ball entity for collision detection
+            parent=camera.ui
         )
     )
 
@@ -93,7 +93,6 @@ D_key = Text(text='D', scale=2, y=-0, origin=(0, 0), background=False)
 D_key.x = 0.16
 
 
-
 def change_W_color(beat_time):
     W_key.color = color.random_color()
 
@@ -123,38 +122,89 @@ second_pos = (100,450)
 third_pos = (-100,450)
 fourth_pos = (-250,450)
 
+COLLISION_ONE_PROJECTILE = 1
+COLLISION_TWO_PROJECTILE = 2
+COLLISION_THREE_PROJECTILE = 3
+COLLISION_FOUR_PROJECTILE = 4
+COLLISION_FIVE = 5
+COLLISION_SIX = 6
+COLLISION_SEVEN = 7
+COLLISION_EIGHT = 8
+
+handler0 = space.add_collision_handler(COLLISION_ONE_PROJECTILE, COLLISION_FIVE)
+handler1 = space.add_collision_handler(COLLISION_TWO_PROJECTILE, COLLISION_SIX)
+handler2 = space.add_collision_handler(COLLISION_THREE_PROJECTILE, COLLISION_SEVEN)
+handler3 = space.add_collision_handler(COLLISION_FOUR_PROJECTILE, COLLISION_EIGHT)
+
+
+
+def score_counter():
+    global score
+    score += 1
+    score_text.text = f'Score: {score}'
+    print(f'Collision detected! Score: {score}')
+
+def collision_callback(arbiter, space, data):
+    contact_points = arbiter.contact_point_set.points
+    for contact_point in contact_points:
+        collision_point = contact_point.point_a
+        screen_point = (int(collision_point.x), int(collision_point.y))
+        print(screen_point)
+
+
+
 for beat_time in first_of_four:
     invoke(change_W_white, beat_time=beat_time, delay=beat_time)
     invoke(change_D_color, beat_time=beat_time, delay=beat_time)
-    invoke(create_ball,position=firs_pos, beat_time=beat_time, delay=beat_time)
+    invoke(create_ball,position=firs_pos, collision_type = COLLISION_FIVE, beat_time=beat_time, delay=beat_time)
 for beat_time in second_of_four:
-    invoke(change_S_color, beat_time=beat_time, delay=beat_time)
+    invoke(change_S_color, beat_time=beat_time,  delay=beat_time)
     invoke(change_D_white, beat_time=beat_time, delay=beat_time)
-    invoke(create_ball, position=second_pos, beat_time=beat_time, delay=beat_time)
+    invoke(create_ball, position=second_pos, collision_type = COLLISION_SIX, beat_time=beat_time, delay=beat_time)
 for beat_time in third_of_four:
     invoke(change_S_white, beat_time=beat_time, delay=beat_time)
     invoke(change_A_color, beat_time=beat_time, delay=beat_time)
-    invoke(create_ball, position=third_pos, beat_time=beat_time, delay=beat_time)
+    invoke(create_ball, position=third_pos, collision_type = COLLISION_SEVEN, beat_time=beat_time, delay=beat_time)
 for beat_time in four_of_four:
     invoke(change_A_white, beat_time=beat_time, delay=beat_time)
     invoke(change_W_color, beat_time=beat_time, delay=beat_time)
-    invoke(create_ball,position=fourth_pos, beat_time=beat_time, delay=beat_time)
+    invoke(create_ball,position=fourth_pos, collision_type = COLLISION_EIGHT,  beat_time=beat_time, delay=beat_time)
 
+
+score_text = Text(text='0', origin=(0.5, -0.5), background=False, y=0.4)
 
 
 def input(key):
+    current_time = time.time() - start_time
+
+    if key == 'd':
+        create_projectile(position=(250, -450), collision_type= COLLISION_ONE_PROJECTILE)
+        for beat_time in beat_times:
+            if abs(current_time - beat_time) < reaction_time:
+                invoke(score_counter)
+    if key == 's':
+        create_projectile(position=(100, -450), collision_type= COLLISION_TWO_PROJECTILE)
+        for beat_time in beat_times:
+            if abs(current_time - beat_time) < reaction_time:
+                invoke(score_counter)
+
+    if key == 'a':
+        create_projectile(position=(-100, -450), collision_type= COLLISION_THREE_PROJECTILE)
+        for beat_time in beat_times:
+            if abs(current_time - beat_time) < reaction_time:
+                invoke(score_counter)
 
     if key == 'w':
-        create_projectile(position=(250, -450))
-    if key == 'a':
-        create_projectile(position=(100, -450))
-    if key == 's':
-        create_projectile(position=(-100, -450))
-    if key == 'd':
-        create_projectile(position=(-250, -450))
+        create_projectile(position=(-250, -450), collision_type= COLLISION_FOUR_PROJECTILE)
+        for beat_time in beat_times:
+            if abs(current_time - beat_time) < reaction_time:
+                invoke(score_counter)
 
 
 
+    
+    
+        
 
 
 def update():
