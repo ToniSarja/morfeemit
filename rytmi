@@ -15,7 +15,7 @@ space.gravity = 0.0, -9.81*100
 balls = []
 ball_entities = []
 score = 0
-reaction_time = 0.05
+reaction_time = 0.1
 
 start_time = time.time()
 
@@ -131,26 +131,49 @@ COLLISION_SIX = 6
 COLLISION_SEVEN = 7
 COLLISION_EIGHT = 8
 
-handler0 = space.add_collision_handler(COLLISION_ONE_PROJECTILE, COLLISION_FIVE)
-handler1 = space.add_collision_handler(COLLISION_TWO_PROJECTILE, COLLISION_SIX)
-handler2 = space.add_collision_handler(COLLISION_THREE_PROJECTILE, COLLISION_SEVEN)
-handler3 = space.add_collision_handler(COLLISION_FOUR_PROJECTILE, COLLISION_EIGHT)
-
-
 
 def score_counter():
     global score
     score += 1
     score_text.text = f'Score: {score}'
-    print(f'Collision detected! Score: {score}')
 
 def collision_callback(arbiter, space, data):
-    contact_points = arbiter.contact_point_set.points
-    for contact_point in contact_points:
-        collision_point = contact_point.point_a
-        screen_point = (int(collision_point.x), int(collision_point.y))
-        print(screen_point)
+    # Get the colliding shapes
+    shape_a, shape_b = arbiter.shapes
 
+    # Find the corresponding balls for the colliding shapes
+    ball_a = next((ball for ball in balls if ball.body == shape_a.body), None)
+    ball_b = next((ball for ball in balls if ball.body == shape_b.body), None)
+
+    # Check if both balls were found
+    try:
+        if ball_a is not None and ball_b is not None:
+            # Remove the colliding shapes from the space
+            space.remove(shape_a, shape_b)
+
+            # Remove the corresponding balls from the list
+            balls.remove(ball_a)
+            balls.remove(ball_b)
+
+            # Destroy any associated entities
+            destroy(ball_entities[balls.index(ball_a)])
+            destroy(ball_entities[balls.index(ball_b)])
+
+            # Remove the corresponding entities from the list
+            ball_entities.pop(balls.index(ball_a))
+            ball_entities.pop(balls.index(ball_b))
+    except:
+        pass
+
+handler0 = space.add_collision_handler(COLLISION_ONE_PROJECTILE, COLLISION_FIVE)
+handler1 = space.add_collision_handler(COLLISION_TWO_PROJECTILE, COLLISION_SIX)
+handler2 = space.add_collision_handler(COLLISION_THREE_PROJECTILE, COLLISION_SEVEN)
+handler3 = space.add_collision_handler(COLLISION_FOUR_PROJECTILE, COLLISION_EIGHT)
+
+handler0.post_solve = collision_callback
+handler1.post_solve = collision_callback
+handler2.post_solve = collision_callback
+handler3.post_solve = collision_callback
 
 
 for beat_time in first_of_four:
